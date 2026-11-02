@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+backend/.venv/
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+remotion/node_modules/
+remotion/.cache/
+remotion/out/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+.env
+.env.*
+!.env.example
