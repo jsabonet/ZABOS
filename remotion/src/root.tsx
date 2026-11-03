@@ -6,6 +6,8 @@ import type { VideoProps } from "./types";
 
 const defaultProps: VideoProps = {
   schema_version: 1,
+  template_id: "showcase",
+  visual_theme_id: "cinematic_stories",
   title: "Dica rápida",
   scenes: [
     {
@@ -30,7 +32,8 @@ export const RemotionRoot: React.FC = () => (
         props.scenes.reduce(
           (total, scene) => total + scene.duration_seconds,
           0,
-        ) * 30,
+        ) * 30 +
+        (props.end_card?.enabled ? props.end_card.duration_seconds * 30 : 0),
     })}
   />
 );

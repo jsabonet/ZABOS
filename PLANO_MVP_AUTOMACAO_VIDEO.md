@@ -174,33 +174,34 @@ Prefixo proposto: `/api/v1/`.
 
 | Método | Endpoint | Finalidade | Resposta esperada |
 |---|---|---|---|
-| `POST` | `/videos/` | Criar geração a partir do briefing | `202` e `id`/`status` |
+| `POST` | `/videos/` | Criar guião a partir do briefing | `201` (inline) ou `202` (fila), `id`/`status` |
 | `GET` | `/videos/` | Listar histórico do utilizador | Lista paginada |
 | `GET` | `/videos/{id}/` | Consultar estado e metadados | Estado actual |
+| `POST` | `/videos/{id}/render/` | Aprovar payload e iniciar render | `200` (inline) ou `202` (fila) |
 | `GET` | `/videos/{id}/file/` | Obter/servir o vídeo concluído | MP4 autorizado |
-| `POST` | `/videos/{id}/retry/` | Repetir geração falhada, se incluído | `202` e novo estado |
 
-O pedido de criação pode solicitar a geração do agente no Django ou receber um payload proposto pelo frontend. Escolher apenas um fluxo no MVP: **preferencialmente o Django chama o agente, valida a resposta e agenda o render**, mantendo o payload como fonte de verdade no backend.
+O Django chama o agente e valida a resposta estruturada. O payload fica em estado de rascunho até o utilizador rever e aprovar; só então o frontend o envia ao endpoint de renderização.
 
 ### Comportamento da criação
 
 1. Autenticar e validar o utilizador e o briefing.
 2. Criar um registo de geração.
-3. Obter a resposta estruturada do agente.
-4. Validar o payload com o schema.
-5. Persistir o payload aprovado e enfileirar a tarefa de renderização.
-6. Devolver `202 Accepted`; em caso de falha do agente, devolver erro explícito e manter estado coerente.
+3. Obter a resposta estruturada do agente e validá-la com o schema.
+4. Persistir o payload como rascunho e expor a revisão ao utilizador.
+5. Validar e persistir o payload aprovado no endpoint de renderização.
+6. Executar localmente ou enfileirar o Remotion, conforme o modo configurado.
 
-Se a chamada ao agente também for lenta, executá-la como parte da tarefa assíncrona: a API devolve imediatamente `queued`, e o worker realiza agente e render sequencialmente. Para o prazo de 48 horas, adoptar este fluxo evita pedidos HTTP longos e reduz dois pipelines diferentes.
+No modo local inline, o pedido de criação aguarda pelo guião e o pedido de render aguarda pelo MP4. No modo assíncrono, o worker actualiza separadamente os estados da criação do guião e do render.
 
 ## 8. Interface e experiência
 
 - Página principal limpa: chat à esquerda e preview à direita, adaptável a ecrãs pequenos.
 - Mostrar estados claros: a preparar guião, em fila, a renderizar, concluído e falhou.
-- Separar a geração do agente da aprovação do utilizador apenas se o tempo permitir; caso contrário, mostrar o payload/preview antes de iniciar o render ou oferecer uma acção simples de confirmar.
+- Separar a geração do agente da aprovação: permitir editar título, texto, duração e cor das cenas antes de iniciar o render.
 - Actualizar o estado através de polling moderado (por exemplo, alguns segundos) enquanto `queued`/`processing`; parar ao concluir ou falhar. WebSockets ficam fora do MVP.
 - Player `<video controls playsInline>` para o ficheiro concluído; indicar visualmente quando ainda não existe vídeo.
 - Histórico recente com estado, data, título e acesso ao resultado.
+- Biblioteca inicial de formatos narrativos e visuais: produto em destaque, tutorial rápido, antes/depois, lista de dicas e história da marca. A selecção orienta o agente e o Remotion; não representa promessa de viralidade.
 - Tratar `401`, `403`, `404`, `429` e erros de validação sem mensagens genéricas de sucesso.
 - Nunca construir URLs de ficheiros a partir de caminhos arbitrários fornecidos pelo browser.
 

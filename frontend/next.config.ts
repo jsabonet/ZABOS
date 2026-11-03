@@ -7,6 +7,7 @@ const backendUrl = (process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8000").rep
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  allowedDevOrigins: ["127.0.0.1"],
   turbopack: {
     root: process.cwd(),
   },

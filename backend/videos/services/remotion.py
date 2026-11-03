@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ def render_video(payload, destination):
         dir=destination.parent,
         delete=False,
     ) as props_file:
-        json.dump(payload, props_file, ensure_ascii=False)
+        json.dump(payload, props_file, cls=DjangoJSONEncoder, ensure_ascii=False)
         props_path = Path(props_file.name)
 
     command = [
